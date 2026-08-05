@@ -1,31 +1,27 @@
 # Cobro - Sistema de Trazabilidad de Créditos
 
-**Gestioné** el desarrollo completo de un sistema web de trazabilidad de créditos para cobradores, **automatizando** el cálculo de cuotas, pagos, mora y caja diaria, **reduciendo** el manejo manual de libros de cobranza en un 90% mediante una plataforma digital con roles diferenciados, multi-moneda y reportes en PDF.
+**Gestioné** el desarrollo completo de un sistema web de trazabilidad de créditos para cobradores, **automatizando** el cálculo de cuotas, pagos, mora y caja diaria, **reduciendo** el manejo manual de libros de cobranza en un 90% mediante una plataforma digital con roles jerárquicos, multi-moneda, multilenguaje y reportes en PDF.
 
-## 🚀 Demo en vivo
+## Demo en vivo
 
 **[https://cobros-sage.vercel.app](https://cobros-sage.vercel.app)**
 
-### Credenciales de prueba
-- **Demo**: `demo@cobro.com` / `demo-camilo2051`
+> El backend puede tardar ~30s en responder la primera vez (Render free tier duerme tras inactividad).
 
-> Nota: El backend puede tardar ~30s en responder la primera vez (Render free tier duerme tras inactividad).
+## Tabla de contenidos
 
-## 📋 Tabla de contenidos
+- [Descripcion](#descripcion)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Modelo de datos](#modelo-de-datos)
+- [Arquitectura](#arquitectura)
+- [Seguridad](#seguridad)
+- [Testing y CI/CD](#testing-y-cicd)
+- [Despliegue](#despliegue)
 
-- [Descripción](#-descripción)
-- [Tecnologías](#-tecnologías)
-- [Funcionalidades](#-funcionalidades)
-- [Modelo de datos](#-modelo-de-datos)
-- [Arquitectura](#-arquitectura)
-- [Seguridad](#-seguridad)
-- [Testing y CI/CD](#-testing-y-cicd)
-- [Despliegue](#-despliegue)
-- [Capturas](#-capturas)
+## Descripcion
 
-## 📖 Descripción
-
-Sistema web completo para gestionar créditos de clientes con trazabilidad de pagos, caja diaria, control de mora y suscripción mensual. Diseñado para cobradores que necesitan llevar controle de sus préstamos desde el móvil.
+Sistema web completo para gestionar creditos de clientes con trazabilidad de pagos, caja diaria, control de mora y suscripcion mensual. Diseñado para cobradores que necesitan llevar control de sus prestamos desde el movil.
 
 ### Roles de usuario
 - **ADMIN**: Control absoluto del sistema, crea usuarios y gestiona suscripciones
@@ -33,27 +29,28 @@ Sistema web completo para gestionar créditos de clientes con trazabilidad de pa
 - **INDEPENDIENTE**: Trabaja por su cuenta sin cobradores subordinados
 - **COBRADOR**: Gestiona sus clientes, créditos y pagos
 
-## 🛠 Tecnologías
+## Tecnologias
 
 ### Backend
 - **NestJS** (TypeScript) - API REST modular
 - **Prisma ORM 7** - PostgreSQL con adapter @prisma/adapter-pg
 - **JWT + Passport** - Autenticación con refresh token (access 1h, refresh 7d)
-- **@nestjs/throttler** - Rate limiting global
-- **Helmet** - Headers de seguridad
-- **Swagger** - Documentación API
-- **PDFKit** - Generación de reportes PDF en memoria
+- **@nestjs/throttler** - Rate limiting en autenticación
+- **Helmet** - Headers de seguridad HTTP
+- **Swagger** - Documentación API (solo en desarrollo)
+- **PDFKit** - Generación de reportes PDF con diseño profesional
 - **@nestjs/schedule** - Cron jobs (zona horaria America/Bogota)
-- **bcrypt** - Hash de contraseñas (salt rounds 10)
+- **bcrypt** - Hash de contraseñas
 
 ### Frontend
 - **React 19 + Vite** (TypeScript)
-- **Tailwind CSS v4** - Estilos responsive
+- **Tailwind CSS v4** - Estilos responsive con dark mode
 - **React Router** - Navegación SPA
 - **Recharts** - Gráficos del dashboard
 - **Axios** - Cliente HTTP con interceptor JWT y refresh automático
 - **Lucide Icons** - Iconografía
 - **xlsx** - Exportación a Excel
+- **i18n** - Sistema de traducciones propio (español, portugués, inglés)
 
 ### Base de datos y DevOps
 - **PostgreSQL 16** (Neon serverless en producción)
@@ -61,18 +58,22 @@ Sistema web completo para gestionar créditos de clientes con trazabilidad de pa
 - **GitHub Actions** - CI/CD con tests automáticos
 - **Render + Vercel + Neon** - Despliegue gratuito
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 ### Autenticación y seguridad
 - Login con documento o email + contraseña
 - JWT con doble token (access 1h + refresh 7d)
 - Renovación automática de token (interceptor axios)
-- Rate limiting global (1000/min) y en auth (5/min)
+- Rate limiting en login (5/min), register (5/min) y refresh (30/min)
 - Bloqueo de cuenta tras 5 intentos fallidos (5 min)
 - Sanitización global de inputs (anti-XSS)
-- CORS configurable y estricto en producción
+- CORS estricto en producción
 - Validación de JWT_SECRET al arranque
 - Helmet (X-Frame-Options, CSP, HSTS)
+- Política de contraseñas robusta (min 8, mayúscula, minúscula, número)
+- Errores 500 con mensaje genérico
+- Swagger deshabilitado en producción
+- trust proxy para IP real del cliente
 
 ### Clientes
 - CRUD completo con búsqueda y resaltado
@@ -88,48 +89,52 @@ Sistema web completo para gestionar créditos de clientes con trazabilidad de pa
 - Cálculo con interés simple: `total = monto * (1 + interés/100)`
 - Periodicidades: DIARIO, SEMANAL, QUINCENAL, MENSUAL
 - Créditos diarios excluyen domingos (días hábiles)
-- Mora dinámica con días de atraso (sin recargo automático)
+- Mora dinámica con días de atraso
 - Clientes en mora resaltados en rojo
 - Cuota mínima recalculada según saldo pendiente
 - Pago parcial no avanza cuota hasta completar
 - Tabla de cuotas con estados (pagada/parcial/pendiente/cubierta)
 - Ticket de venta imprimible
 - Diálogo para crear crédito después de crear cliente
-- Preguntar renovar crédito al completar pago total
 - Filtros por periodicidad
 - Exportar a Excel
+- Layout responsive (cards en móvil, tabla en desktop)
 
 ### Pagos
 - Pago sugerido automático (abono pendiente o cuota mínima)
 - Botón "Pagar saldo total" con un clic
 - Pagos parciales permitidos en el mismo día
 - Pago total cierra crédito automáticamente
-- Filtros por método de pago
+- Filtros por método de pago y fecha
 - Búsqueda por cliente o ID de crédito
 - Admin puede editar/eliminar pagos (revierte crédito y caja)
 - Prevención de envío duplicado en formularios
+- Layout responsive (cards en móvil)
 
 ### Caja diaria
 - Cobrador debe abrir caja antes de crear créditos o pagos
 - Pagos y préstamos se registran automáticamente
 - Movimientos manuales (entradas/salidas)
 - Cierre automático a medianoche (cron America/Bogota)
-- Admin puede ver, editar y eliminar movimientos
 - Capital del admin cobrador se actualiza al abrir/cerrar
-- Historial con exportación a Excel
+- Admin puede ver, editar y eliminar movimientos
+- Eliminar movimiento revierte crédito/pago
+- Historial con filtros por fecha (hoy, semana, fecha específica)
+- Exportar a Excel
 
 ### Dashboard
 - Filtros por periodo (hoy, 7 días, 30 días, todo)
-- Tarjetas: clientes, créditos activos, saldo pendiente, recaudo
+- Tarjetas: capital, saldo pendiente, recaudado, clientes, créditos activos
+- Resumen financiero: total prestado, recaudado, créditos pagados
 - Gráfico de línea: recaudo por día
 - Gráfico de torta: métodos de pago
 - Gráfico de barras: top 5 deudores
 - Gráfico de evolución del saldo
-- Lista: últimos 5 pagos
+- Lista: últimos pagos
 - Multi-moneda (COP, USD, BRL)
 
 ### Reportes PDF
-- Estado de cuenta con título personalizado (nombre del cliente)
+- Estado de cuenta con diseño profesional (header morado, tarjetas, tablas con colores)
 - Reporte de morosidad con días de atraso y cobrador
 - Generados en memoria con PDFKit
 
@@ -137,16 +142,32 @@ Sistema web completo para gestionar créditos de clientes con trazabilidad de pa
 - COP (Peso Colombiano), USD (Dólar), BRL (Real Brasileño)
 - formatCurrency adaptativo según moneda del usuario
 - Capital configurable por admin cobrador
+- Soporte de decimales para BRL/USD
+
+### Multilenguaje (i18n)
+- Español (por defecto), Portugués, Inglés
+- Selector en la página de perfil
+- Persistencia en localStorage
+- 180+ claves de traducción
+
+### Modo oscuro
+- Toggle en el sidebar
+- Detecta preferencia del sistema operativo
+- Persistencia en localStorage
+- Variables CSS para ambos temas
+
+### Notificaciones in-app
+- Campana en el sidebar con badge de no leídas
+- Alertas automáticas: créditos en mora, vence pronto (3 días), caja sin abrir, pagos hoy
+- Panel desplegable con iconos por tipo
+- Navegación al hacer clic
+- Persistencia de leídas en localStorage
 
 ### Auditoría
 - Registro automático de cambios en clientes, créditos, pagos y cajas
--Usuario responsable en cada cambio
+- Usuario responsable en cada cambio
 - Página dedicada (solo admin)
-
-### Perfil de usuario
-- Editar nombre
-- Cambiar contraseña (valida actual)
-- Configurar capital y moneda (setup inicial)
+- Layout responsive
 
 ### UI/UX
 - Modo responsive completo (sidebar colapsable, cards en móvil)
@@ -155,97 +176,31 @@ Sistema web completo para gestionar créditos de clientes con trazabilidad de pa
 - Notificaciones toast
 - Búsqueda con resaltado de coincidencias
 - Título de pestaña dinámico
+- Prevención de envío duplicado en formularios
 
-## 📊 Modelo de datos
+## Modelo de datos
 
 ```prisma
 model Usuario {
-  id               String         @id @default(uuid())
-  nombre           String
-  documento        String         @unique
-  email            String         @unique
-  password         String
-  rol              RolUsuario     @default(COBRADOR)
-  estado           EstadoUsuario  @default(INACTIVO)
-  capital          Float?
-  moneda           Moneda?
-  adminCobradorId  String?
-  intentosFallidos Int            @default(0)
-  bloqueadoHasta   DateTime?
-  // ...relaciones
+  id, nombre, documento, email, password, rol, estado,
+  capital, moneda, adminCobradorId, intentosFallidos, bloqueadoHasta
 }
 
-model Cliente {
-  id         String     @id @default(uuid())
-  documento  String
-  nombre     String
-  apellido   String
-  telefono   String?
-  email      String?
-  direccion  String?
-  cobradorId String?
-  // ...
+model Cliente { id, documento, nombre, apellido, telefono, email, direccion, cobradorId }
   @@unique([cobradorId, documento])
-}
 
-model Credito {
-  id            String          @id @default(uuid())
-  monto         Float
-  interes       Float
-  plazo         Int
-  periodicidad  Periodicidad    @default(MENSUAL)
-  cuota         Float
-  saldo         Float
-  estado        EstadoCredito   @default(APROBADO)
-  fechaInicio   DateTime        @default(now())
-  fechaVence    DateTime
-  // ...
-}
+model Credito { id, monto, interes, plazo, periodicidad, cuota, saldo, estado, fechaInicio, fechaVence }
 
-model Pago {
-  id           String      @id @default(uuid())
-  creditoId    String
-  cuotaNumero  Int
-  monto        Float
-  metodo       MetodoPago
-  estado       EstadoPago  @default(PAGADO)
-  fechaPago    DateTime    @default(now())
-  // ...
-}
+model Pago { id, creditoId, cuotaNumero, monto, metodo, estado, fechaPago }
 
-model Caja {
-  id           String          @id @default(uuid())
-  cobradorId   String
-  montoInicial Float
-  montoFinal   Float?
-  estado       EstadoCaja      @default(ABIERTA)
-  fecha        DateTime        @default(now())
-  cerradaEn    DateTime?
-  // ...
-}
+model Caja { id, cobradorId, montoInicial, montoFinal, estado, fecha, cerradaEn }
 
-model MovimientoCaja {
-  id          String          @id @default(uuid())
-  cajaId      String
-  tipo        TipoMovimiento
-  monto       Float
-  descripcion String?
-  pagoId      String?
-  // ...
-}
+model MovimientoCaja { id, cajaId, tipo, monto, descripcion, pagoId }
 
-model Auditoria {
-  id          String   @id @default(uuid())
-  entidad     String
-  entidadId   String
-  accion      String
-  descripcion String
-  usuarioId   String?
-  // ...
-}
+model Auditoria { id, entidad, entidadId, accion, descripcion, usuarioId }
 ```
 
-## 🏗 Arquitectura
+## Arquitectura
 
 ### Backend (NestJS)
 ```
@@ -268,40 +223,38 @@ src/
 ```
 frontend/src/
 ├── pages/            # 11 páginas (login, dashboard, clientes, etc.)
-├── components/       # UI, tabla-cuotas, pagination, skeleton
+├── components/       # UI, tabla-cuotas, pagination, skeleton, creditos/
 ├── hooks/            # useCreditos, usePagos, useCaja, useDashboard
-├── context/          # Auth y toast
+├── context/          # Auth, Toast, Theme, Language, Notificaciones
 ├── services/         # Axios con interceptor JWT
-└── lib/              # finance.ts, utils.ts, export.ts
+└── lib/              # finance.ts, utils.ts, export.ts, translations.ts
 ```
 
-## 🔒 Seguridad
+## Seguridad
 
 - JWT con refresh token rotativo
-- Rate limiting global + auth (5/min)
+- Rate limiting en auth (5/min login, 5/min register, 30/min refresh)
 - Bloqueo de cuenta tras 5 intentos fallidos
-- Sanitización anti-XSS global
-- Helmet (headers de seguridad)
+- Sanitización anti-XSS global (SanitizePipe)
+- Helmet (headers de seguridad HTTP)
 - CORS estricto en producción
-- Validación JWT_SECRET al arranque
+- Validación de JWT_SECRET al arranque (min 20 chars en producción)
 - Errores 500 con mensaje genérico
 - Swagger deshabilitado en producción
 - trust proxy para IP real del cliente
-- Política de contraseñas (min 8, mayúscula, minúscula, número)
+- Política de contraseñas robusta (min 8, mayúscula, minúscula, número)
 
-## 🧪 Testing y CI/CD
+## Testing y CI/CD
 
 ### Backend (92 tests con Jest)
-- Unitarios: creditos, pagos, caja, guards
+- Unitarios: creditos, pagos, caja, mora, guards
 - Seguridad: SQL injection, JWT, authorization, input validation
 - E2E: flujo completo de crédito y pago
 
-### Frontend (50 tests con Vitest, 97% coverage)
+### Frontend (49 tests con Vitest, 97% coverage)
 - Utilidades: formatCurrency, formatDate, cn
 - Componentes: Button, Input, Badge, Dialog, Card
-- Export: exportToExcel
-- Login: renderizado, inputs, éxito/fallo
-- ConfirmDialog y Pagination
+- Export, Login, ConfirmDialog, Pagination, TablaCuotas
 
 ### CI/CD (GitHub Actions)
 - Tests backend (Jest + PostgreSQL service)
@@ -309,7 +262,7 @@ frontend/src/
 - Build backend y frontend
 - Se ejecuta en cada push/PR a main
 
-## 🚀 Despliegue
+## Despliegue
 
 ### Producción actual (gratuito)
 - **BD**: Neon (PostgreSQL serverless)
@@ -323,21 +276,32 @@ cp .env.production.example .env.production
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-## 📸 Capturas
+## Capturas
 
-> Las capturas se agregarán próximamente en la carpeta `/screenshots/`
+### Login
+![Login](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/login.png)
 
-- Login
-- Dashboard
-- Lista de clientes (agrupados por cobrador)
-- Lista de créditos (con mora)
-- Detalle de crédito con ticket de venta
-- Caja diaria
-- Página de cobradores
+### Dashboard
+![Dashboard](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/dashboard.png)
 
-## 📄 Licencia
+### Clientes
+![Clientes](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/clientes.png)
+
+### Creditos
+![Creditos](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/creditos.png)
+
+### Detalle de Credito
+![Detalle de Credito](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/detalles-credito.png)
+
+### Pagos
+![Pagos](https://raw.githubusercontent.com/Camilo2051/Cobros-Portafolio/main/screenshots/pagos.png)
+
+## Licencia
 
 Copyright (c) 2026 Camilo Garzón. Todos los derechos reservados.
+
+Uso educativo y de portafolio únicamente. Prohibido uso comercial, copia o distribución sin autorización.
+
 
 Uso educativo y de portafolio únicamente. Prohibido uso comercial, copia o distribución sin autorización.
 
